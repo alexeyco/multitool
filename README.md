@@ -2,8 +2,7 @@
 
 ![multitool — fast workflows for Codex and OpenCode](docs/gallery/banner.svg)
 
-`multitool` is the `@alexeyco/multitool` npm package for OpenCode and Codex. It
-registers eight OpenCode commands and distributes their matching Codex skills.
+Registers eight OpenCode commands and distributes their matching Codex skills.
 The source instructions remain in the Markdown files in this repository.
 
 ## Codex
