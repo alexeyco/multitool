@@ -1,0 +1,9 @@
+# Node.js dependencies
+node_modules/
+
+# npm artifacts and logs
+*.tgz
+npm-debug.log*
+
+# macOS
+.DS_Store
