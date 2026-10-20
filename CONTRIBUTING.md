@@ -8,6 +8,10 @@ Contributions should reflect the files and behavior that currently exist. Keep d
 - Keep documentation claims grounded in the repository's current contents.
 - Do not describe planned commands or plugin behavior as available features.
 
+## Branch naming
+
+Use `feat/<kebab-desc>`, `fix/<kebab-desc>`, or `chore/<kebab-desc>` for branch names.
+
 ## Validation
 
 Use Node.js `>=22.18`. From the repository root, install the locked
