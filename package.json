@@ -1,0 +1,39 @@
+{
+  "name": "@alexeyco/multitool",
+  "version": "0.1.0",
+  "description": "Repository workflow commands for OpenCode and Codex",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./opencode/index.ts"
+  },
+  "files": [
+    ".codex-plugin",
+    "opencode",
+    "codex/skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "typecheck": "tsc --noEmit --module nodenext --moduleResolution nodenext --target es2022 --types node opencode/index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "^2.0.28"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexeyco/multitool.git"
+  },
+  "homepage": "https://github.com/alexeyco/multitool",
+  "bugs": {
+    "url": "https://github.com/alexeyco/multitool/issues"
+  }
+}

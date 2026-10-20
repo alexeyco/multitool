@@ -1,0 +1,18 @@
+{
+  "name": "multitool",
+  "version": "0.1.0",
+  "description": "Repository workflow skills for Codex.",
+  "author": {
+    "name": "Alexeyco",
+    "url": "https://github.com/alexeyco"
+  },
+  "skills": "./codex/skills/",
+  "interface": {
+    "displayName": "multitool",
+    "shortDescription": "Repository workflow skills",
+    "longDescription": "Codex skills for branching, commits, pull requests, pushing, trunk updates, tagging, and changelog updates.",
+    "developerName": "Alexeyco",
+    "category": "Productivity",
+    "capabilities": []
+  }
+}
