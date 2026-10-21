@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.1
+
+### Added
+
+- Added weekly Dependabot updates for npm dependencies.
+
+### Changed
+
+- Updated npm development dependencies.
+- Updated the Codex pull request workflow to run provider CLI commands outside the sandbox.
+
+### Fixed
+
+- Updated the commit workflow to repair failed checks and rerun them until all checks pass.
+
 ## 0.1.0
 
 ### Added
