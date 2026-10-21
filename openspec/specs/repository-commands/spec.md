@@ -32,7 +32,7 @@ The `repo-branch` skill and OpenCode `/repo.branch` command SHALL provide the ex
 
 ### Requirement: Repository commit workflow
 
-The `repo-commit` skill and OpenCode `/repo.commit` command SHALL inspect unstaged, staged, and untracked contents for secrets and junk files, run repository-defined checks, group changes into logical commits, stage files only by explicit path, and require confirmation before creating each commit.
+The `repo-commit` skill and OpenCode `/repo.commit` command SHALL inspect unstaged, staged, and untracked contents for secrets and junk files, run repository-defined checks, safely diagnose and fix causes of failed checks and rerun checks until all defined checks pass, group changes into logical commits, stage files only by explicit path, and require confirmation before creating each commit. If the cause cannot be fixed safely or required permissions or context are unavailable, the workflow SHALL report the failure and stop without creating a commit.
 
 #### Scenario: Report excluded secret or junk files
 
@@ -52,7 +52,17 @@ The `repo-commit` skill and OpenCode `/repo.commit` command SHALL inspect unstag
 #### Scenario: Stop when repository checks fail
 
 **WHEN** the repository defines checks and any check fails
-**THEN** the workflow reports the failure and stops without creating a commit.
+**THEN** the workflow diagnoses the cause, fixes it when safe and within available permissions and context, and reruns the defined checks until they all pass; it stops without creating a commit only when a safe repair or required permissions or context are unavailable.
+
+#### Scenario: Repair a failed repository check
+
+**WHEN** a repository-defined check fails for a cause that can be safely fixed with the available permissions and context
+**THEN** the workflow fixes the cause and reruns the defined checks, repeating diagnosis and safe repairs as needed until all checks pass before preparing commits.
+
+#### Scenario: Stop when a failed check cannot be fixed safely
+
+**WHEN** a repository-defined check fails and its cause cannot be fixed safely, or required permissions or context are unavailable
+**THEN** the workflow reports the failing check, its cause, and what is needed, then stops without creating a commit.
 
 #### Scenario: Confirm each logical commit
 
@@ -221,7 +231,7 @@ The `repo-tag` skill and OpenCode `/repo.tag` command SHALL update clean `master
 
 ### Requirement: Repository pull request workflow
 
-The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported GitHub, GitLab including self-hosted instances, Forgejo, and Codeberg/Gitea providers; check the corresponding CLI and authentication before creating a request; use a matching provider request template when available and fill every section; otherwise use Summary, Changes, and Test plan sections; present request details; and require user confirmation.
+The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported GitHub, GitLab including self-hosted instances, Forgejo, and Codeberg/Gitea providers; check the corresponding CLI and authentication before creating a request; use a matching provider request template when available and fill every section; otherwise use Summary, Changes, and Test plan sections; present request details; and require user confirmation. In Codex, the workflow SHALL run only provider CLI commands (`gh`, `glab`, or `tea`) outside the sandbox; all non-provider commands SHALL run in the existing execution context. This execution boundary applies only to this workflow.
 
 #### Scenario: Stop when on the default branch
 
@@ -232,6 +242,11 @@ The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported GitHu
 
 **WHEN** the current branch has uncommitted changes or commits that have not been pushed
 **THEN** the workflow stops and reports what must be committed or pushed before request creation.
+
+#### Scenario: Run provider CLI commands outside the Codex sandbox
+
+**WHEN** the request workflow in Codex needs to check or use a provider CLI
+**THEN** it runs only `gh`, `glab`, or `tea` commands outside the sandbox, including authentication checks and request creation, while Git commands and CLI discovery run in the existing execution context.
 
 #### Scenario: Create a request on a supported provider
 
@@ -260,7 +275,7 @@ The project SHALL map OpenCode `/repo.branch` to the Codex skill `repo-branch`, 
 #### Scenario: Invoke a workflow on either host
 
 **WHEN** a user invokes a mapped skill directly in Codex or its dotted command in OpenCode
-**THEN** the corresponding workflow runs with the same behavior and safeguards on either host.
+**THEN** the corresponding workflow runs with the same behavior and safeguards on either host, applying any host-specific execution boundary specified by that workflow.
 
 #### Scenario: Invoke the tag workflow on either host
 
