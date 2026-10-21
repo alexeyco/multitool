@@ -10,6 +10,12 @@ action and requires the user's confirmation.
 
 ## Procedure
 
+In Codex, run provider CLI commands (`gh`, `glab`, or `tea`) outside the
+sandbox whenever the workflow needs to check or use them. This includes
+authentication checks and request creation. Run all non-provider commands,
+including Git commands and CLI discovery with `command -v`, in the existing
+execution context. Apply this rule only to this workflow.
+
 1. Inspect `git status --short --branch` and `git remote -v`. Identify the
    provider from the remote: GitHub uses `gh`; GitLab, including self-hosted
    instances, uses `glab`; Codeberg, Forgejo, and Gitea (including instances

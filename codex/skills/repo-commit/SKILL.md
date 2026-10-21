@@ -19,8 +19,14 @@ changes and obtaining confirmation for each commit.
    path as a separate line. Never stage excluded files.
 3. Find and run the checks defined by `AGENTS.md`, `CONTRIBUTING.md`, the
    Makefile, package scripts, and CI configuration. If the repository defines
-   no checks, skip this step. If any defined check fails, report the failure
-   and stop without creating a commit.
+   no checks, skip this step. When a check fails, diagnose its cause from the
+   check output and relevant repository files. Fix the cause when the repair
+   is safe and within the available permissions and context, then rerun the
+   defined checks. Repeat diagnosis, safe repairs, and check runs until every
+   defined check passes. If the cause cannot be fixed safely, or required
+   permissions or context are unavailable, report the failing check, its
+   cause, and what is needed; stop without creating a commit. Do not skip,
+   weaken, or silence a failing check to proceed.
 4. Group related changes into logical commits, generally one per task. Keep
    unrelated work separate and keep changes that only make sense together in
    one commit.
