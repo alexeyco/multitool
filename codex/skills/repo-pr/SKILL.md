@@ -14,7 +14,9 @@ In Codex, run provider CLI commands (`gh`, `glab`, or `tea`) outside the
 sandbox whenever the workflow needs to check or use them. This includes
 authentication checks and request creation. Run all non-provider commands,
 including Git commands and CLI discovery with `command -v`, in the existing
-execution context. Apply this rule only to this workflow.
+execution context. If host execution is unavailable, stop and report that
+limitation. Never retry a provider command in the sandbox or ask the user to
+authenticate there. Apply this rule only to this workflow.
 
 1. Inspect `git status --short --branch` and `git remote -v`. Identify the
    provider from the remote: GitHub uses `gh`; GitLab, including self-hosted
@@ -22,16 +24,22 @@ execution context. Apply this rule only to this workflow.
    identified by their domain or port 3000+) use `tea`.
 2. Check that the corresponding CLI exists (`command -v <cli>`) and is
    authenticated (`gh auth status`, `glab auth status`, or the active `tea`
-   login). If the provider is unsupported, the CLI is missing, or
-   authentication fails, stop. Report what is installed/configured, give the
-   exact provider-specific installation or login command when one applies, and
-   give the manual web UI path. For an unsupported provider, state that no
+   login). Run provider CLI commands in the host execution context, outside the
+   sandbox. If host execution is unavailable, stop and report that limitation;
+   do not retry in the sandbox or ask the user to authenticate there. If the
+   provider is unsupported, the CLI is missing, or authentication fails in the
+   host context, stop. Report what is installed/configured, give the exact
+   provider-specific installation or login command when one applies, and give
+   the manual web UI path. For an unsupported provider, state that no
    supported CLI installation or login command is available and give its web
    UI path instead. Do not claim that a request was created. Examples: `gh
    auth login`, `glab auth login`, and `tea login add`.
 3. Determine the current source branch and repository default target using
    `git symbolic-ref refs/remotes/origin/HEAD` or provider data. If the current
-   branch is the default branch, stop and ask the user to use a feature branch.
+   branch is the default branch, read `CONTRIBUTING.md` for branch naming
+   rules. Propose a suitable feature branch name that follows those rules and
+   stop without creating a request. Do not ask the user to choose a naming
+   format when the repository documents one.
 4. Ensure the branch is ready: uncommitted changes require `/repo.commit`;
    commits not pushed require `/repo.push`. Stop and report what remains. Do
    not create a request from a non-final state.
