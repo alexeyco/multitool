@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+### Added
+
+- Added a protected-branch recovery path that creates a confirmed branch when repository policy rejects a push.
+- Added commit safeguards for unarchived OpenSpec changes and the default branch.
+
+### Changed
+
+- Updated the pull request workflow to use documented branch naming rules and authenticated host execution for provider commands.
+
 ## 0.1.1
 
 ### Added
