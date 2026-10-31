@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+### Changed
+
+- Updated repository tagging to require a clean configured default branch, matching release versions, and changelog coverage before tag approval.
+- Updated `@opencode/plugin` and its dependencies.
+
 ## 0.2.0
 
 ### Added
