@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD: Update Purpose after archive.
+Defines how repository documentation describes verified project behavior and gives factual contribution guidance.
 
 ## Requirements
 
