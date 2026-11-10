@@ -25,52 +25,68 @@ approves the exact tag and target commit.
    `git pull --ff-only origin "<default-branch>"`. If the pull fails, report
    the failure and stop without creating or pushing a tag. Record the full
    updated target SHA with `git rev-parse HEAD`.
-4. Require a tracked root `CHANGELOG.md`. Check that it exists and is tracked
-   with `git ls-files --error-unmatch CHANGELOG.md`. If it is absent, offer
-   the user `$docs-changelog` to create and prepare it, then stop this tagging
-   run. Let that workflow obtain separate approval for creating the file,
-   change set, entry text, and version. Do not create or edit the changelog
-   here.
-5. Read the top two versioned headings in `CHANGELOG.md`. If there is no
-   versioned top entry, report that release readiness cannot be established
-   and stop. Require the preceding versioned entry to have a corresponding
-   `v<version>` tag locally or remotely; if it does not, report that the
-   changelog diff baseline cannot be established and stop. Compare the
-   commits and complete diff from that preceding tag to the updated default
-   branch commit with the top changelog entry. Report any changes omitted
-   from the entry and stop if the entry does not cover the release diff.
-6. Read the release version from the explicit release-file list:
-   - `package.json`: root `version`.
-   - `package-lock.json`: top-level `version` and
-     `packages[""].version`.
-
-   Require all three values to exist and match each other and the top
-   versioned `CHANGELOG.md` heading. If a file cannot be read or parsed, a
-   version is missing, or any values differ, report the files and values and
-   stop. Add future manifest types to this explicit list only through a
-   reviewed workflow change; do not infer release versions from unrelated
-   version fields.
-7. Set the candidate tag to `v<top changelog version>`, following the
-   documented release convention. Check for that exact tag both locally with
+4. Identify the release version artifacts from the repository's manifests,
+   release configuration, documentation, and CI. Determine which package or
+   release unit the repository tags; do not treat dependency versions,
+   language versions, or unrelated package versions as release versions.
+   - JavaScript or TypeScript: use the root `package.json` `version`. Compare
+     each present applicable root lockfile release-version field. For
+     `package-lock.json`, check the top-level `version` and
+     `packages[""].version` when present. A missing lockfile does not block
+     release readiness.
+   - Rust: use the package `version` in `Cargo.toml`, including an inherited
+     workspace package version when declared. If an applicable
+     `herdr-plugin.toml` is present, compare its release `version` with the
+     Rust package version.
+   - Go: use a release version source only when repository documentation or
+     CI identifies it as authoritative. `go.mod`'s `go` directive is a
+     language version, not a release version.
+   If documentation, CI, or the manifest's purpose does not establish one
+   authoritative release version source, or if applicable sources conflict,
+   report the candidate paths and values and stop without proposing a tag.
+   When multiple Go sources are established, require their versions to agree.
+   Do not guess a version field or add package formats by treating arbitrary
+   files as release manifests.
+5. Check whether the tracked root `CHANGELOG.md` exists with
+   `git ls-files --error-unmatch CHANGELOG.md`.
+   - If present, read its top two versioned headings. If there is no versioned
+     top entry, report that release readiness cannot be established and stop.
+     Require the preceding versioned entry to have its corresponding release
+     tag locally or remotely; if it does not, report that the changelog diff
+     baseline cannot be established and stop. Compare the commits and complete
+     diff from that preceding tag to the updated default branch commit with
+     the top entry. Report any changes omitted from the entry and stop if it
+     does not cover the release diff. Require the top heading version to match
+     every applicable authoritative release artifact version.
+   - If absent, skip only checks that require changelog content. Identify the
+     preceding release tag from the established tag convention and tag
+     history. If no prior release tag baseline can be established, report the
+     missing evidence and stop without proposing a tag. If the user asks how
+     to prepare release notes, you may offer `$docs-changelog` as a separate
+     action; do not create or edit the changelog here.
+6. Set the candidate release version from the top changelog heading when the
+   changelog is present, or from the agreed authoritative release artifacts
+   when it is absent. Set the candidate tag according to the established
+   release convention. If the version cannot be associated with a tag
+   convention from tag history or `CONTRIBUTING.md`, ask the user for the exact
+   tag and do not guess. Check for that exact tag both locally with
    `git show-ref --verify "refs/tags/<tag>"` and remotely with
    `git ls-remote --tags origin "refs/tags/<tag>"`. If it exists locally or
    remotely, report the collision and stop without replacing or pushing it.
    If the remote check fails for a reason other than no matching ref, report
-   the failure and stop. If neither tag history nor `CONTRIBUTING.md`
-   establishes a tag convention, ask the user for the exact tag and do not
-   guess a tag name.
-8. Validate the proposed tag with
+   the failure and stop.
+7. Validate the proposed tag with
    `git check-ref-format "refs/tags/<tag>"`. If it is invalid, report that
    and ask for a valid exact tag. Present the exact tag and full target SHA,
    then ask for explicit approval to create and push that tag to `origin`.
    Do not proceed on ambiguous or partial approval. If the user changes
    either value, repeat validation and both collision checks, then ask for
    approval of the new exact pair.
-9. After approval, create the tag at the approved SHA. Follow the tag object
+8. After approval, create the tag at the approved SHA. Follow the tag object
    convention in existing tag history; if history does not establish one,
    create an annotated tag. Push only the exact tag name to `origin` with
    `git push origin "refs/tags/<tag>"`.
-10. If the push is rejected by tag protection or repository policy, report
+9. If the push is rejected by tag protection or repository policy, report
     the rejection and stop. Do not retry, force-push, replace the tag, or
     change the approved tag or target. Report the pushed tag and target SHA
     after a successful push.

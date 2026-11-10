@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD: Update Purpose after archive.
+Defines the GitHub Actions checks for pull requests and master updates, scheduled dependency updates, and version-matched npm releases with provenance.
 
 ## Requirements
 

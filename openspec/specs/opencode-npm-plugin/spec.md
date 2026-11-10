@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD: Update Purpose after archive.
+Defines how the npm package exposes the OpenCode plugin and installs the repository's Codex skills through a plugin marketplace.
 
 ## Requirements
 

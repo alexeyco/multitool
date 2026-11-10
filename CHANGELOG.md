@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+### Changed
+
+- Updated repository tagging to detect authoritative release versions across JavaScript/TypeScript, Rust, Herdr, and Go projects, and to allow releases without a changelog when a prior tag baseline exists.
+- Replaced placeholder purpose text in OpenSpec specifications with descriptions of their existing requirements.
+- Updated npm dependencies.
+
 ## 0.2.1
 
 ### Changed

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD: Update Purpose after archive.
+Defines the repository branch, commit, synchronization, tagging, pull request, and documentation workflows exposed through Codex skills and OpenCode commands.
 
 ## Requirements
 
@@ -32,7 +32,7 @@ The `repo-branch` skill and OpenCode `/repo.branch` command SHALL provide the ex
 
 ### Requirement: Repository commit workflow
 
-The `repo-commit` skill and OpenCode `/repo.commit` command SHALL inspect unstaged, staged, and untracked contents for secrets and junk files, run repository-defined checks, safely diagnose and fix causes of failed checks and rerun checks until all defined checks pass, group changes into logical commits, stage files only by explicit path, and require confirmation before creating each commit. If the cause cannot be fixed safely or required permissions or context are unavailable, the workflow SHALL report the failure and stop without creating a commit. When `openspec/` exists, before creating a commit the workflow SHALL inspect immediate subdirectories of `openspec/changes/`, excluding `archive/`; if any exist, it SHALL ask whether to commit now or archive changes first. If the user chooses to archive first, the workflow SHALL stop without creating a commit until the user reruns it. Before creating a commit while on the repository's default branch, the workflow SHALL ask whether committing there is acceptable. If the user declines, the workflow SHALL read `CONTRIBUTING.md`, propose a branch name following its documented naming rules, and create a local branch from the current `HEAD` only after the user approves the exact name. If no naming convention is documented, it SHALL ask the user to choose a naming format. The workflow SHALL continue on the selected branch and retain per-commit confirmation.
+The `repo-commit` skill and OpenCode `/repo.commit` command SHALL review all change states, exclude and report secrets or junk, run and safely repair repository-defined checks, group changes into logical commits, stage explicit paths, and require confirmation before each commit. It SHALL stop when a safe repair or required context is unavailable, honor OpenSpec archive checkpoints, and resolve default-branch safeguards before committing.
 
 #### Scenario: Report excluded secret or junk files
 
@@ -134,7 +134,7 @@ The `repo-trunk` workflow SHALL prompt before deleting local branches and SHALL 
 
 ### Requirement: Repository push workflow
 
-The `repo-push` skill and OpenCode `/repo.push` command SHALL list commits to be pushed, identify when the local branch is behind its upstream, require confirmation before pushing, and prohibit force pushes unless the user individually and explicitly requests one. If the remote explicitly rejects a push because of branch protection or repository policy, the workflow SHALL propose a local branch name using the naming rules in `CONTRIBUTING.md`, show the exact name, and create the branch from the current `HEAD` only after the user approves it. The workflow SHALL review the pending commits and require separate confirmation before pushing the new branch. For push failures not explicitly identified as branch protection or repository policy rejections, the workflow SHALL report the failure and stop without creating a branch or retrying the push.
+The `repo-push` skill and OpenCode `/repo.push` command SHALL report outgoing commits and upstream status, and require confirmation before pushing. They SHALL prohibit force pushes unless individually requested. After an explicit policy rejection, the workflow SHALL offer a naming-rule-based recovery branch only after approval and require separate approval to push it; other failures stop without retrying.
 
 #### Scenario: Set upstream when absent
 
@@ -227,7 +227,37 @@ The `repo-sync` skill and OpenCode `/repo.sync` command SHALL check for a clean 
 
 ### Requirement: Repository tag workflow
 
-The `repo-tag` skill and OpenCode `/repo.tag` command SHALL require a clean worktree and the configured default branch to be checked out, update that branch with a fast-forward-only pull, and verify release readiness before proposing a tag. Release readiness SHALL require a tracked root `CHANGELOG.md` whose top versioned entry matches every version in the workflow's explicit release-file list (`package.json` and root `package-lock.json`), has no matching local or remote `v<version>` tag, and accurately covers all changes in the diff from the preceding versioned entry's tagged baseline to the updated default-branch commit. If the changelog is absent, the workflow SHALL offer `$docs-changelog` to create and prepare it, then stop without tagging. The workflow SHALL require approval of the exact tag and target commit before creating and pushing the tag, validate the tag as a Git ref, stop on update failure or tag collision, and never overwrite a tag. If the configured default branch, preceding tagged changelog baseline, or completeness of the changelog entry cannot be established, the workflow SHALL report the issue and stop without tagging.
+The `repo-tag` skill and OpenCode `/repo.tag` SHALL update the branch with a fast-forward-only pull. They SHALL verify authoritative ecosystem versions and, if present, changelog coverage before proposing a tag; without a changelog, a prior release tag is required. They SHALL stop on unknown or conflicting versions or a missing baseline. They SHALL validate the tag, check collisions, require approval of the exact tag and target before creating or pushing, and never overwrite a tag.
+
+#### Scenario: Validate JavaScript release versions
+
+**WHEN** a JavaScript or TypeScript project has a root package manifest and lockfile with release version fields
+**THEN** the workflow validates the root package version and applicable root lockfile version fields, and stops with the conflicting paths and values if they differ.
+
+#### Scenario: Validate Rust release version
+
+**WHEN** a Rust project uses `Cargo.toml` as its package manifest
+**THEN** the workflow reads the package release version from `Cargo.toml` and uses it to validate or propose the release tag.
+
+#### Scenario: Validate Herdr and Rust release versions
+
+**WHEN** a Rust project also has an applicable `herdr-plugin.toml` release manifest
+**THEN** the workflow checks that its release version agrees with the package version in `Cargo.toml` and stops with both paths and values if they differ.
+
+#### Scenario: Use a project-established Go release version
+
+**WHEN** a Go project has a release version source that its documentation or CI identifies as authoritative
+**THEN** the workflow validates the version from that source before proposing a tag.
+
+#### Scenario: Do not treat the Go language version as a release version
+
+**WHEN** `go.mod` is the only version-bearing file identified in a Go project
+**THEN** the workflow reports that the Go language version does not establish a release version and stops without tagging.
+
+#### Scenario: Stop when the release version source is unknown or ambiguous
+
+**WHEN** the workflow cannot identify one authoritative release version source or finds conflicting candidate release sources
+**THEN** it reports the relevant paths and values and stops without proposing a tag.
 
 #### Scenario: Stop on a dirty worktree
 
@@ -249,9 +279,19 @@ The `repo-tag` skill and OpenCode `/repo.tag` command SHALL require a clean work
 **WHEN** the worktree is clean, the configured default branch is checked out, and that branch is `master`
 **THEN** the workflow fetches from `origin` and updates `master` with `git pull --ff-only`.
 
+#### Scenario: Update the configured default branch with fast-forward only
+
+**WHEN** the worktree is clean and the configured default branch is checked out
+**THEN** the workflow fetches from `origin` and updates that branch with `git pull --ff-only`.
+
 #### Scenario: Stop when master cannot fast-forward
 
 **WHEN** the fast-forward-only update of `master` fails
+**THEN** the workflow reports the failure and does not create or push a tag.
+
+#### Scenario: Stop when the default branch cannot fast-forward
+
+**WHEN** the fast-forward-only update of the configured default branch fails
 **THEN** the workflow reports the failure and does not create or push a tag.
 
 #### Scenario: Update a configured default branch other than master with fast-forward only
@@ -259,10 +299,15 @@ The `repo-tag` skill and OpenCode `/repo.tag` command SHALL require a clean work
 **WHEN** the worktree is clean, the configured default branch is checked out, and that branch is not `master`
 **THEN** the workflow fetches from `origin` and updates the configured default branch with `git pull --ff-only`.
 
+#### Scenario: Check changelog release coverage when present
+
+**WHEN** a tracked root `CHANGELOG.md` exists
+**THEN** the workflow retains the top-entry, preceding tagged baseline, release diff coverage, version agreement, and matching-tag collision checks.
+
 #### Scenario: Offer changelog preparation when the file is absent
 
-**WHEN** the tracked root `CHANGELOG.md` does not exist
-**THEN** the workflow offers `$docs-changelog` to create and prepare it, then stops this tagging run without creating or pushing a tag.
+**WHEN** the root `CHANGELOG.md` is absent and the user asks how to prepare release notes
+**THEN** the workflow may offer `$docs-changelog` as a separate action and does not require the user to create a changelog to continue tag readiness checks.
 
 #### Scenario: Stop when the changelog has no versioned top entry
 
@@ -281,13 +326,23 @@ The `repo-tag` skill and OpenCode `/repo.tag` command SHALL require a clean work
 
 #### Scenario: Stop when changelog and release file versions differ
 
-**WHEN** the top changelog version differs from the version in `package.json` or root `package-lock.json`
+**WHEN** the top changelog version differs from any applicable authoritative release artifact version
 **THEN** the workflow reports the mismatching files and versions and stops without tagging.
 
 #### Scenario: Stop when the changelog version already has a tag
 
 **WHEN** a local or remote tag named `v<top changelog version>` already exists
 **THEN** the workflow reports the existing tag and stops without replacing or pushing it.
+
+#### Scenario: Proceed without changelog when release artifacts and a prior tag are established
+
+**WHEN** the root `CHANGELOG.md` is absent, authoritative release artifact versions agree, and a prior release tag baseline is established
+**THEN** the workflow skips changelog-only checks and continues through the remaining release readiness and tag safeguards.
+
+#### Scenario: Stop without changelog when no prior tag baseline exists
+
+**WHEN** the root `CHANGELOG.md` is absent and the workflow cannot establish a prior release tag baseline
+**THEN** it reports the missing baseline evidence and stops without proposing a tag.
 
 #### Scenario: Ask for a tag when no convention is available
 
@@ -297,7 +352,7 @@ The `repo-tag` skill and OpenCode `/repo.tag` command SHALL require a clean work
 #### Scenario: Approve an exact tag and target
 
 **WHEN** all release readiness checks pass and a candidate tag and updated configured-default-branch commit are available
-**THEN** the workflow presents the exact tag and full SHA of the updated configured default branch and creates and pushes that tag only after the user approves both.
+**THEN** the workflow presents the exact tag and full SHA of the updated configured-default-branch commit and creates and pushes that tag only after the user approves both.
 
 #### Scenario: Stop when the tag name already exists
 
@@ -311,7 +366,7 @@ The `repo-tag` skill and OpenCode `/repo.tag` command SHALL require a clean work
 
 ### Requirement: Repository pull request workflow
 
-The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported GitHub, GitLab including self-hosted instances, Forgejo, and Codeberg/Gitea providers; check the corresponding CLI and authentication before creating a request; use a matching provider request template when available and fill every section; otherwise use Summary, Changes, and Test plan sections; present request details; and require user confirmation. In Codex, the workflow SHALL run only provider CLI commands (`gh`, `glab`, or `tea`) outside the sandbox; all non-provider commands SHALL run in the existing execution context. The workflow SHALL consult `CONTRIBUTING.md` for branch naming rules when a feature branch is needed, and SHALL propose a name following documented rules rather than asking the user to choose a naming format. It SHALL NOT retry provider commands in the sandbox or ask the user to authenticate there after a sandbox-context failure; if host execution is unavailable, it SHALL stop and report that limitation. This execution boundary applies only to this workflow.
+The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported providers, check CLI and authentication readiness, use matching request templates or standard sections, and require confirmation before creating a request. They SHALL follow documented branch naming rules. In Codex, provider CLI commands run outside the sandbox; if host execution is unavailable, the workflow stops without retrying in the sandbox or asking the user to authenticate there.
 
 #### Scenario: Stop when on the default branch
 
