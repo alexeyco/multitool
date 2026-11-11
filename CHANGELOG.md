@@ -2,6 +2,11 @@
 
 ## 0.3.0
 
+### Added
+
+- Added `$bump` and `/bump` to review tracked changes, propose an approved SemVer version, update authoritative release artifacts, and optionally update or create `CHANGELOG.md`.
+- Added a version-bump prompt to `repo-pr`; choosing yes runs `$bump` and pauses PR preparation until changes are committed and pushed.
+
 ### Changed
 
 - Updated repository tagging to detect authoritative release versions across JavaScript/TypeScript, Rust, Herdr, and Go projects, and to allow releases without a changelog when a prior tag baseline exists.
