@@ -61,9 +61,9 @@ approves the exact tag and target commit.
    - If absent, skip only checks that require changelog content. Identify the
      preceding release tag from the established tag convention and tag
      history. If no prior release tag baseline can be established, report the
-     missing evidence and stop without proposing a tag. If the user asks how
-     to prepare release notes, you may offer `$docs-changelog` as a separate
-     action; do not create or edit the changelog here.
+     missing evidence and stop without proposing a tag. Do not offer a
+     standalone changelog-only command; this workflow does not create or edit
+     the changelog.
 6. Set the candidate release version from the top changelog heading when the
    changelog is present, or from the agreed authoritative release artifacts
    when it is absent. Set the candidate tag according to the established

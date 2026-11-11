@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { Plugin, Skill } from "@opencode/plugin";
 
 const SKILL_IDS = [
-  "docs-changelog",
+  "bump",
   "repo-branch",
   "repo-commit",
   "repo-pr",
@@ -14,7 +14,7 @@ const SKILL_IDS = [
 ] as const;
 
 const COMMANDS = [
-  { name: "docs.changelog", skillID: "docs-changelog" },
+  { name: "bump", skillID: "bump" },
   { name: "repo.branch", skillID: "repo-branch" },
   { name: "repo.commit", skillID: "repo-commit" },
   { name: "repo.pr", skillID: "repo-pr" },

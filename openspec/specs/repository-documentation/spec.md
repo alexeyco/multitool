@@ -8,7 +8,7 @@ Defines how repository documentation describes verified project behavior and giv
 
 ### Requirement: Current-state README
 
-The project README SHALL describe verified facts about the current repository, including its current Codex skills and OpenCode commands, relevant existing files, npm plugin installation through OpenCode's `plugins` configuration, and CI and release triggers.
+The project README SHALL describe verified facts about the current repository, including its current Codex skills and OpenCode commands, relevant existing files, npm plugin installation through OpenCode's `plugin` configuration, and CI and release triggers.
 
 #### Scenario: Reader checks the repository status
 
@@ -18,7 +18,7 @@ The project README SHALL describe verified facts about the current repository, i
 #### Scenario: Reader installs the npm plugin
 
 **WHEN** a reader follows the README's npm installation instructions
-**THEN** the instructions identify the `@alexeyco/multitool` package, show how to add it to OpenCode's `plugins` configuration, and list the commands and skills the plugin registers.
+**THEN** the instructions identify the `@alexeyco/multitool` package, show how to add it to OpenCode's `plugin` configuration, and list the commands and skills the plugin registers, including `/bump` and `$bump` and excluding `/docs.changelog` and `$docs-changelog`.
 
 #### Scenario: Reader checks CI and release behavior
 

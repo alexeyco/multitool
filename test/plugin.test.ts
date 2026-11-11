@@ -7,7 +7,7 @@ import plugin from "../opencode/index.ts";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const entries = [
-  ["docs.changelog", "docs-changelog"],
+  ["bump", "bump"],
   ["repo.branch", "repo-branch"],
   ["repo.commit", "repo-commit"],
   ["repo.pr", "repo-pr"],

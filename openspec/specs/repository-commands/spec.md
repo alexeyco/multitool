@@ -227,7 +227,7 @@ The `repo-sync` skill and OpenCode `/repo.sync` command SHALL check for a clean 
 
 ### Requirement: Repository tag workflow
 
-The `repo-tag` skill and OpenCode `/repo.tag` SHALL update the branch with a fast-forward-only pull. They SHALL verify authoritative ecosystem versions and, if present, changelog coverage before proposing a tag; without a changelog, a prior release tag is required. They SHALL stop on unknown or conflicting versions or a missing baseline. They SHALL validate the tag, check collisions, require approval of the exact tag and target before creating or pushing, and never overwrite a tag.
+The `repo-tag` skill and OpenCode `/repo.tag` SHALL verify release readiness and require approval of the exact tag and target before creating and pushing it. They SHALL never overwrite an existing tag.
 
 #### Scenario: Validate JavaScript release versions
 
@@ -304,10 +304,10 @@ The `repo-tag` skill and OpenCode `/repo.tag` SHALL update the branch with a fas
 **WHEN** a tracked root `CHANGELOG.md` exists
 **THEN** the workflow retains the top-entry, preceding tagged baseline, release diff coverage, version agreement, and matching-tag collision checks.
 
-#### Scenario: Offer changelog preparation when the file is absent
+#### Scenario: Do not offer a standalone changelog command when the file is absent
 
 **WHEN** the root `CHANGELOG.md` is absent and the user asks how to prepare release notes
-**THEN** the workflow may offer `$docs-changelog` as a separate action and does not require the user to create a changelog to continue tag readiness checks.
+**THEN** the workflow does not offer a standalone changelog-only command, does not create or edit a changelog, and does not require the user to create one to continue tag readiness checks.
 
 #### Scenario: Stop when the changelog has no versioned top entry
 
@@ -366,7 +366,7 @@ The `repo-tag` skill and OpenCode `/repo.tag` SHALL update the branch with a fas
 
 ### Requirement: Repository pull request workflow
 
-The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported providers, check CLI and authentication readiness, use matching request templates or standard sections, and require confirmation before creating a request. They SHALL follow documented branch naming rules. In Codex, provider CLI commands run outside the sandbox; if host execution is unavailable, the workflow stops without retrying in the sandbox or asking the user to authenticate there.
+The `repo-pr` skill and OpenCode `/repo.pr` command SHALL follow branch rules, verify provider readiness, use matching templates or standard sections, and require approval before request creation. In Codex, provider CLI commands SHALL run outside the sandbox and not be retried there if host execution is unavailable. They SHALL ask whether a version bump is needed before creating a request; if yes, run `$bump` and stop until changes are committed and pushed and the user reruns the PR workflow.
 
 #### Scenario: Stop when on the default branch
 
@@ -388,9 +388,24 @@ The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported provi
 **WHEN** a provider CLI command fails because it was run in the sandbox or host execution is unavailable
 **THEN** the workflow does not retry in the sandbox or ask the user to authenticate there, and reports that provider access must be checked in the host execution context.
 
+#### Scenario: Ask whether a version bump is needed
+
+**WHEN** the branch is ready for PR preparation and the existing provider and template checks are complete
+**THEN** the workflow asks whether the user wants to run `$bump` before creating the request.
+
+#### Scenario: Continue PR preparation when no bump is needed
+
+**WHEN** the user answers that a version bump is not needed
+**THEN** the workflow continues PR preparation and still requires confirmation before creating the request.
+
+#### Scenario: Run bump and stop PR preparation when a bump is needed
+
+**WHEN** the user answers that a version bump is needed
+**THEN** the workflow runs `$bump`, creates no request, and tells the user to commit and push the bump changes and rerun the PR workflow.
+
 #### Scenario: Create a request on a supported provider
 
-**WHEN** the repository uses a supported provider, its CLI is available and authenticated, and the branch is ready
+**WHEN** the repository uses a supported provider, its CLI is available and authenticated, the branch is ready, and the user has declined a version bump
 **THEN** the workflow prepares the pull or merge request, presents its target and content for review, and creates it only after user confirmation.
 
 #### Scenario: Fill the matching request template
@@ -410,7 +425,7 @@ The `repo-pr` skill and OpenCode `/repo.pr` command SHALL detect supported provi
 
 ### Requirement: Cross-host command and skill mapping
 
-The project SHALL map OpenCode `/repo.branch` to the Codex skill `repo-branch`, `/repo.commit` to `repo-commit`, `/repo.trunk` to `repo-trunk`, `/repo.push` to `repo-push`, `/repo.sync` to `repo-sync`, `/repo.pr` to `repo-pr`, and `/repo.tag` to `repo-tag`. Each OpenCode command SHALL invoke its mapped Codex skill, and both hosts SHALL preserve the safeguards specified for that workflow.
+The project SHALL map OpenCode `/repo.branch` to the Codex skill `repo-branch`, `/repo.commit` to `repo-commit`, `/repo.trunk` to `repo-trunk`, `/repo.push` to `repo-push`, `/repo.sync` to `repo-sync`, `/repo.pr` to `repo-pr`, `/repo.tag` to `repo-tag`, and `/bump` to `bump`. Each OpenCode command SHALL invoke its mapped Codex skill, and both hosts SHALL preserve the safeguards specified for that workflow. The project SHALL not expose `/docs.changelog` or `docs-changelog`.
 
 #### Scenario: Invoke a workflow on either host
 
@@ -421,3 +436,8 @@ The project SHALL map OpenCode `/repo.branch` to the Codex skill `repo-branch`, 
 
 **WHEN** a user invokes `$repo-tag` in Codex or `/repo.tag` in OpenCode
 **THEN** the repository tag workflow runs with the same behavior and safeguards on either host.
+
+#### Scenario: Invoke the version bump workflow on either host
+
+**WHEN** a user invokes `$bump` in Codex or `/bump` in OpenCode
+**THEN** the same approved version-bump workflow runs on either host.

@@ -1,0 +1,218 @@
+## MODIFIED Requirements
+
+### Requirement: Repository pull request workflow
+
+The `repo-pr` skill and OpenCode `/repo.pr` command SHALL follow branch rules, verify provider readiness, use matching templates or standard sections, and require approval before request creation. In Codex, provider CLI commands SHALL run outside the sandbox and not be retried there if host execution is unavailable. They SHALL ask whether a version bump is needed before creating a request; if yes, run `$bump` and stop until changes are committed and pushed and the user reruns the PR workflow.
+
+#### Scenario: Stop when on the default branch
+
+**WHEN** the current branch is the repository's default branch and `CONTRIBUTING.md` documents branch naming rules
+**THEN** the workflow stops without creating a pull or merge request and proposes a feature branch name using the documented rules instead of asking the user to choose a naming format.
+
+#### Scenario: Stop with uncommitted or unpushed work
+
+**WHEN** the current branch has uncommitted changes or commits that have not been pushed
+**THEN** the workflow stops and reports what must be committed or pushed before request creation.
+
+#### Scenario: Run provider CLI commands outside the Codex sandbox
+
+**WHEN** the request workflow in Codex needs to check or use a provider CLI
+**THEN** it runs only `gh`, `glab`, or `tea` commands outside the sandbox, including authentication checks and request creation, while Git commands and CLI discovery run in the existing execution context.
+
+#### Scenario: Do not retry provider authentication in the sandbox
+
+**WHEN** a provider CLI command fails because it was run in the sandbox or host execution is unavailable
+**THEN** the workflow does not retry in the sandbox or ask the user to authenticate there, and reports that provider access must be checked in the host execution context.
+
+#### Scenario: Ask whether a version bump is needed
+
+**WHEN** the branch is ready for PR preparation and the existing provider and template checks are complete
+**THEN** the workflow asks whether the user wants to run `$bump` before creating the request.
+
+#### Scenario: Continue PR preparation when no bump is needed
+
+**WHEN** the user answers that a version bump is not needed
+**THEN** the workflow continues PR preparation and still requires confirmation before creating the request.
+
+#### Scenario: Run bump and stop PR preparation when a bump is needed
+
+**WHEN** the user answers that a version bump is needed
+**THEN** the workflow runs `$bump`, creates no request, and tells the user to commit and push the bump changes and rerun the PR workflow.
+
+#### Scenario: Create a request on a supported provider
+
+**WHEN** the repository uses a supported provider, its CLI is available and authenticated, the branch is ready, and the user has declined a version bump
+**THEN** the workflow prepares the pull or merge request, presents its target and content for review, and creates it only after user confirmation.
+
+#### Scenario: Fill the matching request template
+
+**WHEN** a matching GitHub, GitLab, Forgejo, or Gitea pull or merge request template exists
+**THEN** the workflow uses it and fills every section before presenting the request for review.
+
+#### Scenario: Use standard sections without a request template
+
+**WHEN** no matching provider request template exists
+**THEN** the workflow prepares the request with Summary, Changes, and Test plan sections.
+
+#### Scenario: Give recovery steps when provider access is unavailable
+
+**WHEN** the provider is unsupported, its CLI is missing, or authentication fails in the host execution context
+**THEN** the workflow reports the exact installation or login command needed and the provider's manual web path, and does not claim a request was created.
+
+### Requirement: Cross-host command and skill mapping
+
+The project SHALL map OpenCode `/repo.branch` to the Codex skill `repo-branch`, `/repo.commit` to `repo-commit`, `/repo.trunk` to `repo-trunk`, `/repo.push` to `repo-push`, `/repo.sync` to `repo-sync`, `/repo.pr` to `repo-pr`, `/repo.tag` to `repo-tag`, and `/bump` to `bump`. Each OpenCode command SHALL invoke its mapped Codex skill, and both hosts SHALL preserve the safeguards specified for that workflow. The project SHALL not expose `/docs.changelog` or `docs-changelog`.
+
+#### Scenario: Invoke a workflow on either host
+
+**WHEN** a user invokes a mapped skill directly in Codex or its dotted command in OpenCode
+**THEN** the corresponding workflow runs with the same behavior and safeguards on either host, applying any host-specific execution boundary specified by that workflow.
+
+#### Scenario: Invoke the tag workflow on either host
+
+**WHEN** a user invokes `$repo-tag` in Codex or `/repo.tag` in OpenCode
+**THEN** the repository tag workflow runs with the same behavior and safeguards on either host.
+
+#### Scenario: Invoke the version bump workflow on either host
+
+**WHEN** a user invokes `$bump` in Codex or `/bump` in OpenCode
+**THEN** the same approved version-bump workflow runs on either host.
+
+### Requirement: Repository tag workflow
+
+The `repo-tag` skill and OpenCode `/repo.tag` SHALL verify release readiness and require approval of the exact tag and target before creating and pushing it. They SHALL never overwrite an existing tag.
+
+#### Scenario: Validate JavaScript release versions
+
+**WHEN** a JavaScript or TypeScript project has a root package manifest and lockfile with release version fields
+**THEN** the workflow validates the root package version and applicable root lockfile version fields, and stops with the conflicting paths and values if they differ.
+
+#### Scenario: Validate Rust release version
+
+**WHEN** a Rust project uses `Cargo.toml` as its package manifest
+**THEN** the workflow reads the package release version from `Cargo.toml` and uses it to validate or propose the release tag.
+
+#### Scenario: Validate Herdr and Rust release versions
+
+**WHEN** a Rust project also has an applicable `herdr-plugin.toml` release manifest
+**THEN** the workflow checks that its release version agrees with the package version in `Cargo.toml` and stops with both paths and values if they differ.
+
+#### Scenario: Use a project-established Go release version
+
+**WHEN** a Go project has a release version source that its documentation or CI identifies as authoritative
+**THEN** the workflow validates the version from that source before proposing a tag.
+
+#### Scenario: Do not treat the Go language version as a release version
+
+**WHEN** `go.mod` is the only version-bearing file identified in a Go project
+**THEN** the workflow reports that the Go language version does not establish a release version and stops without tagging.
+
+#### Scenario: Stop when the release version source is unknown or ambiguous
+
+**WHEN** the workflow cannot identify one authoritative release version source or finds conflicting candidate release sources
+**THEN** it reports the relevant paths and values and stops without proposing a tag.
+
+#### Scenario: Stop on a dirty worktree
+
+**WHEN** the tag workflow starts with tracked or untracked changes in the worktree
+**THEN** it stops before fetching or updating the default branch.
+
+#### Scenario: Stop when not on the configured default branch
+
+**WHEN** the configured default branch is known but a different branch is checked out
+**THEN** the workflow reports the required branch and stops without switching branches or tagging.
+
+#### Scenario: Stop when the default branch cannot be determined
+
+**WHEN** the repository's configured default branch cannot be resolved
+**THEN** the workflow reports that it cannot determine the default branch and stops without fetching or tagging.
+
+#### Scenario: Update master with fast-forward only
+
+**WHEN** the worktree is clean, the configured default branch is checked out, and that branch is `master`
+**THEN** the workflow fetches from `origin` and updates `master` with `git pull --ff-only`.
+
+#### Scenario: Update the configured default branch with fast-forward only
+
+**WHEN** the worktree is clean and the configured default branch is checked out
+**THEN** the workflow fetches from `origin` and updates that branch with `git pull --ff-only`.
+
+#### Scenario: Stop when master cannot fast-forward
+
+**WHEN** the fast-forward-only update of `master` fails
+**THEN** the workflow reports the failure and does not create or push a tag.
+
+#### Scenario: Stop when the default branch cannot fast-forward
+
+**WHEN** the fast-forward-only update of the configured default branch fails
+**THEN** the workflow reports the failure and does not create or push a tag.
+
+#### Scenario: Update a configured default branch other than master with fast-forward only
+
+**WHEN** the worktree is clean, the configured default branch is checked out, and that branch is not `master`
+**THEN** the workflow fetches from `origin` and updates the configured default branch with `git pull --ff-only`.
+
+#### Scenario: Check changelog release coverage when present
+
+**WHEN** a tracked root `CHANGELOG.md` exists
+**THEN** the workflow retains the top-entry, preceding tagged baseline, release diff coverage, version agreement, and matching-tag collision checks.
+
+#### Scenario: Do not offer a standalone changelog command when the file is absent
+
+**WHEN** the root `CHANGELOG.md` is absent and the user asks how to prepare release notes
+**THEN** the workflow does not offer a standalone changelog-only command, does not create or edit a changelog, and does not require the user to create one to continue tag readiness checks.
+
+#### Scenario: Stop when the changelog has no versioned top entry
+
+**WHEN** `CHANGELOG.md` exists but has no versioned top entry
+**THEN** the workflow reports that release readiness cannot be established and stops without tagging.
+
+#### Scenario: Stop when the preceding tagged changelog baseline is unavailable
+
+**WHEN** the changelog's preceding versioned entry cannot be associated with its `v<version>` tag
+**THEN** the workflow reports that it cannot establish the diff baseline and stops without tagging.
+
+#### Scenario: Stop when the release diff is missing from the changelog
+
+**WHEN** manual comparison shows that changes from the preceding versioned entry's tag to the updated default-branch commit are omitted from the top changelog entry
+**THEN** the workflow reports the omitted changes and stops without tagging.
+
+#### Scenario: Stop when changelog and release file versions differ
+
+**WHEN** the top changelog version differs from any applicable authoritative release artifact version
+**THEN** the workflow reports the mismatching files and versions and stops without tagging.
+
+#### Scenario: Stop when the changelog version already has a tag
+
+**WHEN** a local or remote tag named `v<top changelog version>` already exists
+**THEN** the workflow reports the existing tag and stops without replacing or pushing it.
+
+#### Scenario: Proceed without changelog when release artifacts and a prior tag are established
+
+**WHEN** the root `CHANGELOG.md` is absent, authoritative release artifact versions agree, and a prior release tag baseline is established
+**THEN** the workflow skips changelog-only checks and continues through the remaining release readiness and tag safeguards.
+
+#### Scenario: Stop without changelog when no prior tag baseline exists
+
+**WHEN** the root `CHANGELOG.md` is absent and the workflow cannot establish a prior release tag baseline
+**THEN** it reports the missing baseline evidence and stops without proposing a tag.
+
+#### Scenario: Ask for a tag when no convention is available
+
+**WHEN** neither existing tag history nor `CONTRIBUTING.md` establishes a tag convention
+**THEN** the workflow asks the user for the exact tag and does not guess a tag name.
+
+#### Scenario: Approve an exact tag and target
+
+**WHEN** all release readiness checks pass and a candidate tag and updated configured-default-branch commit are available
+**THEN** the workflow presents the exact tag and full SHA of the updated configured-default-branch commit and creates and pushes that tag only after the user approves both.
+
+#### Scenario: Stop when the tag name already exists
+
+**WHEN** the proposed tag name already exists locally or on the remote
+**THEN** the workflow stops without replacing or pushing that tag.
+
+#### Scenario: Stop after a policy-rejected tag push
+
+**WHEN** the remote rejects the approved tag push because of tag protection or repository policy
+**THEN** the workflow reports the rejection and stops without retrying or changing the approved tag or target.
