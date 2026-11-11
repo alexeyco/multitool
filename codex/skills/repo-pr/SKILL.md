@@ -57,9 +57,15 @@ authenticate there. Apply this rule only to this workflow.
    changes, leaving no placeholders. If no matching template exists, use
    `Summary`, `Changes`, and `Test plan`, with concrete content and verification
    commands or scenarios.
-7. Present the host/provider, CLI, source-to-target branches, title, and full
+7. After the branch-readiness, provider, and template checks are complete, ask
+   whether the user wants to run `$bump` before creating the request. If the
+   user declines, continue preparing the request. If the user agrees, invoke
+   `$bump` and stop this workflow without preparing or creating a request.
+   Tell the user to commit and push the approved bump changes, then rerun the
+   PR workflow. Do not commit or push the changes yourself.
+8. Present the host/provider, CLI, source-to-target branches, title, and full
    request body. Create the request only after the user confirms.
-8. Create it with `gh pr create`, `glab mr create`, or `tea pulls create` and
+9. Create it with `gh pr create`, `glab mr create`, or `tea pulls create` and
    report the resulting URL. Do not add reviewers, milestones, or labels unless
    asked.
 

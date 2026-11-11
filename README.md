@@ -27,7 +27,7 @@ Codex installs the packaged skills from the marketplace. Start a new Codex sessi
 - [`$repo-sync`](codex/skills/repo-sync/SKILL.md) — synchronize the current branch with the default branch.
 - [`$repo-trunk`](codex/skills/repo-trunk/SKILL.md) — update the default branch and review local cleanup candidates.
 - [`$repo-tag`](codex/skills/repo-tag/SKILL.md) — create and push a tag after approval.
-- [`$docs-changelog`](codex/skills/docs-changelog/SKILL.md) — review tracked changes and propose an approved changelog entry.
+- [`$bump`](codex/skills/bump/SKILL.md) — review a release baseline and prepare an approved version bump.
 
 ## OpenCode
 
@@ -55,9 +55,15 @@ Commands use the `/tool.action` format:
 - [`/repo.sync`](opencode/commands/repo.sync.md)
 - [`/repo.trunk`](opencode/commands/repo.trunk.md)
 - [`/repo.tag`](opencode/commands/repo.tag.md)
-- [`/docs.changelog`](opencode/commands/docs.changelog.md)
+- [`/bump`](opencode/commands/bump.md)
 
 See [AGENTS.md](AGENTS.md) for the repository map and guidance for contributors and agents.
+
+## Automation
+
+CI runs on pull requests and pushes to `master`. npm publishing runs on `v*`
+version tags after checking that the tag matches `package.json` and its commit
+is on `master`.
 
 ## License
 

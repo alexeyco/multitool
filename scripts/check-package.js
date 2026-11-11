@@ -42,7 +42,7 @@ const required = [
   ".codex-plugin/plugin.json",
   "opencode/index.ts",
   ...[
-    "docs.changelog",
+    "bump",
     "repo.branch",
     "repo.commit",
     "repo.pr",
@@ -52,7 +52,7 @@ const required = [
     "repo.trunk",
   ].map((name) => `opencode/commands/${name}.md`),
   ...[
-    "docs-changelog",
+    "bump",
     "repo-branch",
     "repo-commit",
     "repo-pr",
@@ -61,6 +61,11 @@ const required = [
     "repo-tag",
     "repo-trunk",
   ].map((id) => `codex/skills/${id}/SKILL.md`),
+];
+
+const removed = [
+  "opencode/commands/docs.changelog.md",
+  "codex/skills/docs-changelog/SKILL.md",
 ];
 
 if (codexPlugin.skills !== "./codex/skills/") {
@@ -75,6 +80,12 @@ if (marketplacePlugin?.source?.package !== packageMetadata.name) {
 const missing = required.filter((file) => !files.has(file));
 if (missing.length > 0) {
   console.error(`npm package is missing required files:\n${missing.map((file) => `- ${file}`).join("\n")}`);
+  process.exit(1);
+}
+
+const unexpected = removed.filter((file) => files.has(file));
+if (unexpected.length > 0) {
+  console.error(`npm package contains retired files:\n${unexpected.map((file) => `- ${file}`).join("\n")}`);
   process.exit(1);
 }
 

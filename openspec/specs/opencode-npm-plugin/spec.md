@@ -27,7 +27,7 @@ The npm package SHALL include a Codex plugin manifest that registers the existin
 #### Scenario: Register the existing command set
 
 **WHEN** the plugin initializes
-**THEN** it registers `/repo.branch`, `/repo.commit`, `/repo.pr`, `/repo.push`, `/repo.sync`, `/repo.trunk`, `/repo.tag`, and `/docs.changelog` through the OpenCode command API.
+**THEN** it registers `/repo.branch`, `/repo.commit`, `/repo.pr`, `/repo.push`, `/repo.sync`, `/repo.trunk`, `/repo.tag`, and `/bump` through the OpenCode command API.
 
 #### Scenario: Register bundled skills from their source files
 
@@ -52,7 +52,7 @@ The npm package SHALL include a Codex plugin manifest that registers the existin
 #### Scenario: Preserve the existing workflow content
 
 **WHEN** the npm package is built or packed
-**THEN** the existing Codex skill files and OpenCode command Markdown files are included unchanged as the source content used by the plugin.
+**THEN** the bundled Codex skill files and OpenCode command Markdown files, including the new `bump` workflow and excluding the removed `docs-changelog` workflow, are included as the source content used by the plugin.
 
 #### Scenario: Verify the plugin registry and package contents
 
