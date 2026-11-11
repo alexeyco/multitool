@@ -7,14 +7,11 @@ import plugin from "../opencode/index.ts";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const entries = [
-  ["bump", "bump"],
-  ["repo.branch", "repo-branch"],
-  ["repo.commit", "repo-commit"],
-  ["repo.pr", "repo-pr"],
-  ["repo.push", "repo-push"],
-  ["repo.sync", "repo-sync"],
-  ["repo.tag", "repo-tag"],
-  ["repo.trunk", "repo-trunk"],
+  ["multitool.bump", "bump"],
+  ["multitool.branch", "branch"],
+  ["multitool.commit", "commit"],
+  ["multitool.pr", "pr"],
+  ["multitool.tag", "tag"],
 ] as const;
 
 function parseFrontmatter(source: string) {
@@ -63,6 +60,8 @@ test("registers every bundled skill and command with source mappings", async () 
 
   assert.deepEqual(skills.map((skill) => skill.id), entries.map(([, id]) => id));
   assert.deepEqual(commands.map((command) => command.name), entries.map(([name]) => name));
+  assert.equal(skills.length, 5);
+  assert.equal(commands.length, 5);
   assert.deepEqual(skillTransformCalls, ["transform", "reload"]);
   assert.deepEqual(commandTransformCalls, ["transform", "reload"]);
 

@@ -5,6 +5,9 @@ description: Review a release baseline and prepare an approved version bump.
 
 # Bump the release version
 
+Invoke this workflow as `$multitool:bump` in Codex or `/multitool.bump` in
+OpenCode.
+
 Review one release unit, establish a verified baseline, and propose a SemVer
 version. Do not write release artifacts until the user approves the reviewed
 change set and proposed version. When a changelog entry is required, also

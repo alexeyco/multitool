@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Defines the repository branch, commit, synchronization, tagging, pull request, and documentation workflows exposed through Codex skills and OpenCode commands.
+Defines the repository branch, commit, tagging, pull request, version bump, and cross-host command workflows.
 
 ## Requirements
 
 ### Requirement: Repository branch workflow
 
-The `repo-branch` skill and OpenCode `/repo.branch` command SHALL provide the existing branch selection workflow, operate on the current HEAD, and avoid pushing or deleting branches. When no branch naming convention is documented, the workflow SHALL ask the user to choose a naming format rather than invent one.
+The `branch` skill and OpenCode `/multitool.branch` command SHALL provide the existing branch selection workflow, operate on the current HEAD, and avoid pushing or deleting branches. When no branch naming convention is documented, the workflow SHALL ask the user to choose a naming format rather than invent one.
 
 #### Scenario: Approve a chosen branch name
 
@@ -32,7 +32,7 @@ The `repo-branch` skill and OpenCode `/repo.branch` command SHALL provide the ex
 
 ### Requirement: Repository commit workflow
 
-The `repo-commit` skill and OpenCode `/repo.commit` command SHALL review all change states, exclude and report secrets or junk, run and safely repair repository-defined checks, group changes into logical commits, stage explicit paths, and require confirmation before each commit. It SHALL stop when a safe repair or required context is unavailable, honor OpenSpec archive checkpoints, and resolve default-branch safeguards before committing.
+The `commit` skill and OpenCode `/multitool.commit` command SHALL review all change states, exclude and report secrets or junk, run and safely repair repository-defined checks, group changes into logical commits, stage explicit paths, and require confirmation before each commit. It SHALL stop when a safe repair or required context is unavailable, honor OpenSpec archive checkpoints, and resolve default-branch safeguards before committing.
 
 #### Scenario: Report excluded secret or junk files
 
@@ -72,7 +72,7 @@ The `repo-commit` skill and OpenCode `/repo.commit` command SHALL review all cha
 #### Scenario: Stop when the user chooses to archive first
 
 **WHEN** unarchived OpenSpec change directories exist and the user chooses to archive them before committing
-**THEN** the workflow stops without creating a commit and tells the user to rerun the commit workflow after archiving.
+**THEN** the workflow stops without creating a commit and tells the user to rerun `$multitool:commit` after archiving.
 
 #### Scenario: Confirm commits on the default branch
 
@@ -89,145 +89,68 @@ The `repo-commit` skill and OpenCode `/repo.commit` command SHALL review all cha
 **WHEN** changes are ready to commit and any OpenSpec checkpoint has been resolved
 **THEN** the workflow presents each logical commit message and its file list separately and creates each commit only after the user confirms it.
 
-### Requirement: Repository trunk workflow
+### Requirement: Repository pull request workflow
 
-The `repo-trunk` skill and OpenCode `/repo.trunk` command SHALL stop when the working tree is dirty, determine the repository's default branch, fetch and prune, update that branch using `pull --ff-only`, and report local branches that remain ahead of or behind the updated default branch.
+The `pr` skill and OpenCode `/multitool.pr` command SHALL follow branch rules, verify provider readiness, use matching templates or standard sections, and require approval before request creation. In Codex, provider CLI commands SHALL run outside the sandbox and not be retried there if host execution is unavailable. They SHALL ask whether a version bump is needed before creating a request; if yes, run `$multitool:bump` and stop until changes are committed, manually pushed with `git push`, and the user reruns `$multitool:pr`.
 
-#### Scenario: Stop on a dirty working tree
+#### Scenario: Stop when on the default branch
 
-**WHEN** the user runs trunk maintenance with uncommitted changes
-**THEN** the workflow stops before fetching, pruning, pulling, or cleaning branches.
+**WHEN** the current branch is the repository's default branch and `CONTRIBUTING.md` documents branch naming rules
+**THEN** the workflow stops without creating a pull or merge request and proposes a feature branch name using the documented rules instead of asking the user to choose a naming format.
 
-#### Scenario: Update the default branch
+#### Scenario: Stop with uncommitted or unpushed work
 
-**WHEN** the working tree is clean and the user runs trunk maintenance
-**THEN** the workflow selects the repository's default branch, fetches and prunes remotes, and updates the default branch with `pull --ff-only`.
+**WHEN** the current branch has uncommitted changes or commits that have not been pushed
+**THEN** the workflow stops and directs the user to `$multitool:commit` for uncommitted changes and to run `git push` manually for unpushed commits before request creation.
 
-#### Scenario: Stop when fast-forward update fails
+#### Scenario: Run provider CLI commands outside the Codex sandbox
 
-**WHEN** `pull --ff-only` cannot update the default branch
-**THEN** the workflow stops and reports the failure without cleaning branches.
+**WHEN** the request workflow in Codex needs to check or use a provider CLI
+**THEN** it runs only `gh`, `glab`, or `tea` commands outside the sandbox, including authentication checks and request creation, while Git commands and CLI discovery run in the existing execution context.
 
-#### Scenario: Report retained branches and divergence
+#### Scenario: Do not retry provider authentication in the sandbox
 
-**WHEN** trunk maintenance completes its update
-**THEN** the workflow reports branches it keeps and each branch's ahead and behind counts relative to the default branch.
+**WHEN** a provider CLI command fails because it was run in the sandbox or host execution is unavailable
+**THEN** the workflow does not retry in the sandbox or ask the user to authenticate there, and reports that provider access must be checked in the host execution context.
 
-### Requirement: Safe local branch cleanup
+#### Scenario: Ask whether a version bump is needed
 
-The `repo-trunk` workflow SHALL prompt before deleting local branches and SHALL never delete a remote branch unless the user explicitly requests remote deletion. It MAY use `-D` for a local branch only when the provider confirms a merged pull request or merge request and the local branch HEAD exactly matches the request's source head SHA. It SHALL retain and report branches when merge status or SHA cannot be verified or the SHA differs.
+**WHEN** the branch is ready for PR preparation and the existing provider and template checks are complete
+**THEN** the workflow asks whether the user wants to run `$multitool:bump` before creating the request.
 
-#### Scenario: Delete a Git-merged local branch after confirmation
+#### Scenario: Continue PR preparation when no bump is needed
 
-**WHEN** Git reports a local branch merged into the updated default branch and the user confirms deletion
-**THEN** the workflow deletes that local branch and leaves its remote branch intact.
+**WHEN** the user answers that a version bump is not needed
+**THEN** the workflow continues PR preparation and still requires confirmation before creating the request.
 
-#### Scenario: Delete a verified squash-merged local branch after confirmation
+#### Scenario: Run bump and stop PR preparation when a bump is needed
 
-**WHEN** the provider confirms that a pull request or merge request from a local branch was merged, the local branch HEAD exactly matches its source head SHA, and the user confirms deletion
-**THEN** the workflow may delete that local branch with `-D` and leaves its remote branch intact.
+**WHEN** the user answers that a version bump is needed
+**THEN** the workflow runs `$multitool:bump`, creates no request, and tells the user to run `$multitool:commit`, push manually with `git push`, and rerun `$multitool:pr`.
 
-#### Scenario: Retain a branch when merge evidence is missing or differs
+#### Scenario: Create a request on a supported provider
 
-**WHEN** the provider cannot verify a merged request or source head SHA, or the local branch HEAD differs from that SHA
-**THEN** the workflow keeps and reports the branch, even if the user confirms cleanup of other candidates.
+**WHEN** the repository uses a supported provider, its CLI is available and authenticated, the branch is ready, and the user has declined a version bump
+**THEN** the workflow prepares the pull or merge request, presents its target and content for review, and creates it only after user confirmation.
 
-### Requirement: Repository push workflow
+#### Scenario: Fill the matching request template
 
-The `repo-push` skill and OpenCode `/repo.push` command SHALL report outgoing commits and upstream status, and require confirmation before pushing. They SHALL prohibit force pushes unless individually requested. After an explicit policy rejection, the workflow SHALL offer a naming-rule-based recovery branch only after approval and require separate approval to push it; other failures stop without retrying.
+**WHEN** a matching GitHub, GitLab, Forgejo, or Gitea pull or merge request template exists
+**THEN** the workflow uses it and fills every section before presenting the request for review.
 
-#### Scenario: Set upstream when absent
+#### Scenario: Use standard sections without a request template
 
-**WHEN** the current branch has no upstream and has commits to push
-**THEN** the workflow uses `git push -u origin <branch>` after confirmation.
+**WHEN** no matching provider request template exists
+**THEN** the workflow prepares the request with Summary, Changes, and Test plan sections.
 
-#### Scenario: Stop when there is nothing to push
+#### Scenario: Give recovery steps when provider access is unavailable
 
-**WHEN** the current branch has no commits to push
-**THEN** the workflow reports that there is nothing to push and stops without pushing.
-
-#### Scenario: Offer recovery when the branch is behind
-
-**WHEN** the local branch is behind its upstream
-**THEN** the workflow offers updating from the repository's default branch or rebasing, and does not push until the user resolves the divergence.
-
-#### Scenario: Review a push to the current branch
-
-**WHEN** a user requests a push for the current branch and it is ready to push
-**THEN** the workflow lists the commits, reports upstream status, and pushes only after confirmation without switching branches.
-
-#### Scenario: Propose a branch after a policy rejection
-
-**WHEN** the remote explicitly rejects the push because the current branch is protected or repository policy prohibits the push
-**THEN** the workflow proposes a branch name that follows `CONTRIBUTING.md`, shows the exact name, and waits for the user's confirmation before creating a local branch from the current `HEAD`.
-
-#### Scenario: Confirm push to the recovery branch separately
-
-**WHEN** the user approves creating the recovery branch
-**THEN** the workflow reviews the commits and upstream status for that branch and asks for separate confirmation before pushing it.
-
-#### Scenario: Do not create recovery branches for unrelated push failures
-
-**WHEN** a push fails for a reason other than an explicit branch protection or repository policy rejection
-**THEN** the workflow reports the failure and stops without creating a branch or retrying the push.
-
-#### Scenario: Prohibit force push without individual request
-
-**WHEN** a push would require rewriting remote history and the user has not individually and explicitly requested a force push
-**THEN** the workflow refuses to force push.
-
-### Requirement: Repository synchronization workflow
-
-The `repo-sync` skill and OpenCode `/repo.sync` command SHALL check for a clean worktree, determine the default branch, fetch remote refs without pruning, and compare the current branch with `origin/<default>`. The workflow SHALL fast-forward when the current branch is behind only, report when no update is needed, and require the user's exact strategy choice and confirmation before merging or rebasing a diverged feature branch. It SHALL never switch branches or push.
-
-#### Scenario: Stop when the worktree is dirty
-
-**WHEN** the current worktree contains tracked or untracked changes
-**THEN** the workflow stops before fetching and asks the user to commit or stash the changes.
-
-#### Scenario: Stop from detached HEAD
-
-**WHEN** the repository is in detached HEAD state
-**THEN** the workflow stops and asks the user to check out a branch.
-
-#### Scenario: Ask when the default branch is ambiguous
-
-**WHEN** `origin/HEAD` does not identify the default branch and both `origin/main` and `origin/master` exist
-**THEN** the workflow asks the user which branch to use and does not choose one arbitrarily.
-
-#### Scenario: Fast-forward a branch that is behind only
-
-**WHEN** the current branch has no commits beyond `origin/<default>` and is behind it
-**THEN** the workflow updates the current branch with `git merge --ff-only origin/<default>`.
-
-#### Scenario: Report a branch that already contains the default branch
-
-**WHEN** the current feature branch is equal to or ahead of `origin/<default>`
-**THEN** the workflow reports that no synchronization is needed and makes no change.
-
-#### Scenario: Ask before reconciling a diverged feature branch
-
-**WHEN** the feature branch and `origin/<default>` both contain unique commits
-**THEN** the workflow reports ahead and behind counts, explains how merge and rebase affect commit history, recommends a strategy based on repository guidance and branch state with a reason, and performs neither until the user chooses and confirms one strategy.
-
-#### Scenario: Do not reconcile a diverged default branch
-
-**WHEN** the current branch is the default branch and it has diverged from `origin/<default>`
-**THEN** the workflow reports the divergence and stops without merging or rebasing.
-
-#### Scenario: Stop on update conflicts
-
-**WHEN** a fast-forward, merge, or rebase fails or reports conflicts
-**THEN** the workflow reports the repository state and stops without resolving, aborting, switching branches, or trying another strategy.
-
-#### Scenario: Do not switch branches or push
-
-**WHEN** synchronization completes
-**THEN** the workflow leaves the current branch selected and does not push any commit.
+**WHEN** the provider is unsupported, its CLI is missing, or authentication fails in the host execution context
+**THEN** the workflow reports the exact installation or login command needed and the provider's manual web path, and does not claim a request was created.
 
 ### Requirement: Repository tag workflow
 
-The `repo-tag` skill and OpenCode `/repo.tag` SHALL verify release readiness and require approval of the exact tag and target before creating and pushing it. They SHALL never overwrite an existing tag.
+The `tag` skill and OpenCode `/multitool.tag` command SHALL verify release readiness and require approval of the exact tag and target before creating and pushing it. They SHALL never overwrite an existing tag.
 
 #### Scenario: Validate JavaScript release versions
 
@@ -364,80 +287,21 @@ The `repo-tag` skill and OpenCode `/repo.tag` SHALL verify release readiness and
 **WHEN** the remote rejects the approved tag push because of tag protection or repository policy
 **THEN** the workflow reports the rejection and stops without retrying or changing the approved tag or target.
 
-### Requirement: Repository pull request workflow
-
-The `repo-pr` skill and OpenCode `/repo.pr` command SHALL follow branch rules, verify provider readiness, use matching templates or standard sections, and require approval before request creation. In Codex, provider CLI commands SHALL run outside the sandbox and not be retried there if host execution is unavailable. They SHALL ask whether a version bump is needed before creating a request; if yes, run `$bump` and stop until changes are committed and pushed and the user reruns the PR workflow.
-
-#### Scenario: Stop when on the default branch
-
-**WHEN** the current branch is the repository's default branch and `CONTRIBUTING.md` documents branch naming rules
-**THEN** the workflow stops without creating a pull or merge request and proposes a feature branch name using the documented rules instead of asking the user to choose a naming format.
-
-#### Scenario: Stop with uncommitted or unpushed work
-
-**WHEN** the current branch has uncommitted changes or commits that have not been pushed
-**THEN** the workflow stops and reports what must be committed or pushed before request creation.
-
-#### Scenario: Run provider CLI commands outside the Codex sandbox
-
-**WHEN** the request workflow in Codex needs to check or use a provider CLI
-**THEN** it runs only `gh`, `glab`, or `tea` commands outside the sandbox, including authentication checks and request creation, while Git commands and CLI discovery run in the existing execution context.
-
-#### Scenario: Do not retry provider authentication in the sandbox
-
-**WHEN** a provider CLI command fails because it was run in the sandbox or host execution is unavailable
-**THEN** the workflow does not retry in the sandbox or ask the user to authenticate there, and reports that provider access must be checked in the host execution context.
-
-#### Scenario: Ask whether a version bump is needed
-
-**WHEN** the branch is ready for PR preparation and the existing provider and template checks are complete
-**THEN** the workflow asks whether the user wants to run `$bump` before creating the request.
-
-#### Scenario: Continue PR preparation when no bump is needed
-
-**WHEN** the user answers that a version bump is not needed
-**THEN** the workflow continues PR preparation and still requires confirmation before creating the request.
-
-#### Scenario: Run bump and stop PR preparation when a bump is needed
-
-**WHEN** the user answers that a version bump is needed
-**THEN** the workflow runs `$bump`, creates no request, and tells the user to commit and push the bump changes and rerun the PR workflow.
-
-#### Scenario: Create a request on a supported provider
-
-**WHEN** the repository uses a supported provider, its CLI is available and authenticated, the branch is ready, and the user has declined a version bump
-**THEN** the workflow prepares the pull or merge request, presents its target and content for review, and creates it only after user confirmation.
-
-#### Scenario: Fill the matching request template
-
-**WHEN** a matching GitHub, GitLab, Forgejo, or Gitea pull or merge request template exists
-**THEN** the workflow uses it and fills every section before presenting the request for review.
-
-#### Scenario: Use standard sections without a request template
-
-**WHEN** no matching provider request template exists
-**THEN** the workflow prepares the request with Summary, Changes, and Test plan sections.
-
-#### Scenario: Give recovery steps when provider access is unavailable
-
-**WHEN** the provider is unsupported, its CLI is missing, or authentication fails in the host execution context
-**THEN** the workflow reports the exact installation or login command needed and the provider's manual web path, and does not claim a request was created.
-
 ### Requirement: Cross-host command and skill mapping
 
-The project SHALL map OpenCode `/repo.branch` to the Codex skill `repo-branch`, `/repo.commit` to `repo-commit`, `/repo.trunk` to `repo-trunk`, `/repo.push` to `repo-push`, `/repo.sync` to `repo-sync`, `/repo.pr` to `repo-pr`, `/repo.tag` to `repo-tag`, and `/bump` to `bump`. Each OpenCode command SHALL invoke its mapped Codex skill, and both hosts SHALL preserve the safeguards specified for that workflow. The project SHALL not expose `/docs.changelog` or `docs-changelog`.
+The project SHALL map OpenCode `/multitool.branch`, `/multitool.commit`, `/multitool.pr`, `/multitool.tag`, and `/multitool.bump` to Codex invocations `$multitool:branch`, `$multitool:commit`, `$multitool:pr`, `$multitool:tag`, and `$multitool:bump`, respectively. Each OpenCode command SHALL invoke its mapped Codex skill, and both hosts SHALL preserve the safeguards specified for that workflow. The project SHALL not expose the removed `sync`, `trunk`, or `push` workflows or their old names.
 
 #### Scenario: Invoke a workflow on either host
 
-**WHEN** a user invokes a mapped skill directly in Codex or its dotted command in OpenCode
+**WHEN** a user invokes `$multitool:<action>` in Codex or `/multitool.<action>` in OpenCode for a mapped action
 **THEN** the corresponding workflow runs with the same behavior and safeguards on either host, applying any host-specific execution boundary specified by that workflow.
 
 #### Scenario: Invoke the tag workflow on either host
 
-**WHEN** a user invokes `$repo-tag` in Codex or `/repo.tag` in OpenCode
+**WHEN** a user invokes `$multitool:tag` in Codex or `/multitool.tag` in OpenCode
 **THEN** the repository tag workflow runs with the same behavior and safeguards on either host.
 
 #### Scenario: Invoke the version bump workflow on either host
 
-**WHEN** a user invokes `$bump` in Codex or `/bump` in OpenCode
+**WHEN** a user invokes `$multitool:bump` in Codex or `/multitool.bump` in OpenCode
 **THEN** the same approved version-bump workflow runs on either host.

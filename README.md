@@ -2,7 +2,7 @@
 
 ![multitool — fast workflows for Codex and OpenCode](docs/gallery/banner.svg)
 
-Registers eight OpenCode commands and distributes their matching Codex skills.
+Registers five OpenCode commands and distributes their matching Codex skills.
 The source instructions remain in the Markdown files in this repository.
 
 ## Codex
@@ -20,14 +20,11 @@ Codex installs the packaged skills from the marketplace. Start a new Codex sessi
 
 ### Commands
 
-- [`$repo-branch`](codex/skills/repo-branch/SKILL.md) — create an approved branch for the current task.
-- [`$repo-commit`](codex/skills/repo-commit/SKILL.md) — review changes, run defined checks, and create confirmed commits.
-- [`$repo-pr`](codex/skills/repo-pr/SKILL.md) — prepare and create a pull or merge request after confirmation.
-- [`$repo-push`](codex/skills/repo-push/SKILL.md) — review and push commits after confirmation.
-- [`$repo-sync`](codex/skills/repo-sync/SKILL.md) — synchronize the current branch with the default branch.
-- [`$repo-trunk`](codex/skills/repo-trunk/SKILL.md) — update the default branch and review local cleanup candidates.
-- [`$repo-tag`](codex/skills/repo-tag/SKILL.md) — create and push a tag after approval.
-- [`$bump`](codex/skills/bump/SKILL.md) — review a release baseline and prepare an approved version bump.
+- [`$multitool:branch`](codex/skills/branch/SKILL.md) — create an approved branch for the current task.
+- [`$multitool:commit`](codex/skills/commit/SKILL.md) — review changes, run defined checks, and create confirmed commits.
+- [`$multitool:pr`](codex/skills/pr/SKILL.md) — prepare and create a pull or merge request after confirmation.
+- [`$multitool:tag`](codex/skills/tag/SKILL.md) — create and push a tag after approval.
+- [`$multitool:bump`](codex/skills/bump/SKILL.md) — review a release baseline and prepare an approved version bump.
 
 ## OpenCode
 
@@ -46,16 +43,13 @@ OpenCode installs the npm plugin and registers its commands and skills at startu
 
 ### Commands
 
-Commands use the `/tool.action` format:
+Commands use the `/multitool.<action>` format:
 
-- [`/repo.branch`](opencode/commands/repo.branch.md)
-- [`/repo.commit`](opencode/commands/repo.commit.md)
-- [`/repo.pr`](opencode/commands/repo.pr.md)
-- [`/repo.push`](opencode/commands/repo.push.md)
-- [`/repo.sync`](opencode/commands/repo.sync.md)
-- [`/repo.trunk`](opencode/commands/repo.trunk.md)
-- [`/repo.tag`](opencode/commands/repo.tag.md)
-- [`/bump`](opencode/commands/bump.md)
+- [`/multitool.branch`](opencode/commands/multitool.branch.md)
+- [`/multitool.commit`](opencode/commands/multitool.commit.md)
+- [`/multitool.pr`](opencode/commands/multitool.pr.md)
+- [`/multitool.tag`](opencode/commands/multitool.tag.md)
+- [`/multitool.bump`](opencode/commands/multitool.bump.md)
 
 See [AGENTS.md](AGENTS.md) for the repository map and guidance for contributors and agents.
 
