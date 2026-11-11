@@ -57,7 +57,7 @@ The npm package SHALL include a Codex plugin manifest that registers the existin
 #### Scenario: Verify the plugin registry and package contents
 
 **WHEN** a contributor runs `make check`
-**THEN** executable checks verify exactly five command registrations, five skill registrations, command-to-skill mappings, absence of removed names and aliases, absolute `Skill.Info` locations, loaded source content, unchanged argument and attachment forwarding, and required files in the npm package inventory.
+**THEN** executable checks verify exactly five command registrations, five skill registrations, command-to-skill mappings, absence of removed names and aliases, matching Codex plugin and package versions, absolute `Skill.Info` locations, loaded source content, unchanged argument and attachment forwarding, and required files in the npm package inventory.
 
 #### Scenario: Run the project check
 

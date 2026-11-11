@@ -88,6 +88,12 @@ if (codexPlugin.skills !== "./codex/skills/") {
   console.error("Codex plugin manifest must register ./codex/skills/.");
   process.exit(1);
 }
+if (codexPlugin.version !== packageMetadata.version) {
+  console.error(
+    `Codex plugin version (${codexPlugin.version}) must match package version (${packageMetadata.version}).`,
+  );
+  process.exit(1);
+}
 if (marketplacePlugin?.source?.package !== packageMetadata.name) {
   console.error("Codex marketplace must install the package declared in package.json.");
   process.exit(1);
