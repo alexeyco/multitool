@@ -1,5 +1,5 @@
 ---
-name: repo-commit
+name: commit
 description: Review repository changes, run defined checks, and create separately confirmed logical commits.
 ---
 
@@ -17,7 +17,7 @@ changes and obtaining confirmation for each commit.
 2. If `openspec/` exists, inspect immediate subdirectories of
    `openspec/changes/`, excluding `archive/`. If any remain, ask whether to
    commit now or archive changes first. If the user chooses to archive first,
-   stop without creating a commit and tell them to rerun `/repo.commit` after
+   stop without creating a commit and tell them to rerun `$multitool:commit` after
    archiving.
 3. Exclude secrets and junk, including SSH configuration, private keys,
    tokens, credentials, caches, and build artifacts. Report every excluded

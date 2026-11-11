@@ -1,5 +1,5 @@
 ---
-name: repo-pr
+name: pr
 description: Prepare and create a pull request or merge request after provider, branch, and content checks.
 ---
 
@@ -40,8 +40,8 @@ authenticate there. Apply this rule only to this workflow.
    rules. Propose a suitable feature branch name that follows those rules and
    stop without creating a request. Do not ask the user to choose a naming
    format when the repository documents one.
-4. Ensure the branch is ready: uncommitted changes require `/repo.commit`;
-   commits not pushed require `/repo.push`. Stop and report what remains. Do
+4. Ensure the branch is ready: uncommitted changes require `$multitool:commit`;
+   commits not pushed require a manual `git push`. Stop and report what remains. Do
    not create a request from a non-final state.
 5. Review `git log <target>..<source> --oneline` and
    `git diff <target>...<source> --stat`. Draft a one-line title that states
@@ -58,11 +58,12 @@ authenticate there. Apply this rule only to this workflow.
    `Summary`, `Changes`, and `Test plan`, with concrete content and verification
    commands or scenarios.
 7. After the branch-readiness, provider, and template checks are complete, ask
-   whether the user wants to run `$bump` before creating the request. If the
+   whether the user wants to run `$multitool:bump` before creating the request. If the
    user declines, continue preparing the request. If the user agrees, invoke
-   `$bump` and stop this workflow without preparing or creating a request.
-   Tell the user to commit and push the approved bump changes, then rerun the
-   PR workflow. Do not commit or push the changes yourself.
+   `$multitool:bump` and stop this workflow without preparing or creating a request.
+   Tell the user to commit the approved bump changes with `$multitool:commit`,
+   push manually with `git push`, then rerun `$multitool:pr`. Do not commit or
+   push the changes yourself.
 8. Present the host/provider, CLI, source-to-target branches, title, and full
    request body. Create the request only after the user confirms.
 9. Create it with `gh pr create`, `glab mr create`, or `tea pulls create` and

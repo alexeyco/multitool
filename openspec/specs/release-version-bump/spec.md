@@ -8,7 +8,7 @@ Keeps project release versions and release notes aligned through one approved wo
 
 ### Requirement: Select a release version from a verified baseline
 
-The `bump` skill and OpenCode `/bump` command SHALL review eligible tracked changes from a verified release baseline, identify exactly one release unit, and propose a SemVer version using minor increments for added functionality, patch increments for compatible changes or fixes, and major increments only for clearly documented breaking changes. They SHALL ask the user when the next version is ambiguous.
+The Codex `$multitool:bump` skill and OpenCode `/multitool.bump` command SHALL review eligible tracked changes from a verified release baseline, identify exactly one release unit, and propose a SemVer version using minor increments for added functionality, patch increments for compatible changes or fixes, and major increments only for clearly documented breaking changes. They SHALL ask the user when the next version is ambiguous.
 
 #### Scenario: Review tracked changes from a tagged changelog baseline
 
@@ -52,7 +52,7 @@ The `bump` skill and OpenCode `/bump` command SHALL review eligible tracked chan
 
 ### Requirement: Update authoritative release version artifacts
 
-The `bump` skill and OpenCode `/bump` command SHALL apply the approved version to every applicable authoritative version field for the selected release unit. They SHALL stop without partial edits when the source is unknown, ambiguous, or cannot be safely updated without unrelated dependency changes.
+The Codex `$multitool:bump` skill and OpenCode `/multitool.bump` command SHALL apply the approved version to every applicable authoritative version field for the selected release unit. They SHALL stop without partial edits when the source is unknown, ambiguous, or cannot be safely updated without unrelated dependency changes.
 
 #### Scenario: Update JavaScript or TypeScript release artifacts
 
@@ -91,7 +91,7 @@ The `bump` skill and OpenCode `/bump` command SHALL apply the approved version t
 
 ### Requirement: Write an approved changelog entry when available
 
-The `bump` skill and OpenCode `/bump` command SHALL prepare a factual Keep a Changelog entry under `Added`, `Changed`, or `Fixed` headings when a tracked root `CHANGELOG.md` exists, and SHALL obtain approval of the reviewed change set, exact proposed version, and exact entry text before writing. They SHALL not add dates, empty headings, or boilerplate.
+The Codex `$multitool:bump` skill and OpenCode `/multitool.bump` command SHALL prepare a factual Keep a Changelog entry under `Added`, `Changed`, or `Fixed` headings when a tracked root `CHANGELOG.md` exists, and SHALL obtain approval of the reviewed change set, exact proposed version, and exact entry text before writing. They SHALL not add dates, empty headings, or boilerplate.
 
 #### Scenario: Prepare an entry for an existing changelog
 

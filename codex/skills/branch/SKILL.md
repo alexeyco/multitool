@@ -1,5 +1,5 @@
 ---
-name: repo-branch
+name: branch
 description: Create a branch for the current task using repository naming rules and an explicitly approved name.
 ---
 

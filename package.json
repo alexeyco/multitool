@@ -1,6 +1,6 @@
 {
   "name": "@alexeyco/multitool",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Repository workflow commands for OpenCode and Codex",
   "license": "MIT",
   "type": "module",

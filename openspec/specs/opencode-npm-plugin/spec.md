@@ -27,12 +27,12 @@ The npm package SHALL include a Codex plugin manifest that registers the existin
 #### Scenario: Register the existing command set
 
 **WHEN** the plugin initializes
-**THEN** it registers `/repo.branch`, `/repo.commit`, `/repo.pr`, `/repo.push`, `/repo.sync`, `/repo.trunk`, `/repo.tag`, and `/bump` through the OpenCode command API.
+**THEN** it registers exactly `/multitool.branch`, `/multitool.commit`, `/multitool.pr`, `/multitool.tag`, and `/multitool.bump` through the OpenCode command API, with no removed command names or aliases.
 
 #### Scenario: Register bundled skills from their source files
 
 **WHEN** the plugin initializes
-**THEN** it registers each skill's loaded content and absolute `codex/skills/<id>/SKILL.md` location, derived from `import.meta.dirname`, as an OpenCode `Skill.Info` through the plugin skill API without maintaining duplicate skill text.
+**THEN** it registers exactly the `branch`, `commit`, `pr`, `tag`, and `bump` skill contents and absolute `codex/skills/<id>/SKILL.md` locations, derived from `import.meta.dirname`, as OpenCode `Skill.Info` entries through the plugin skill API without maintaining duplicate skill text.
 
 #### Scenario: Invoke the matching skill from a command
 
@@ -52,12 +52,12 @@ The npm package SHALL include a Codex plugin manifest that registers the existin
 #### Scenario: Preserve the existing workflow content
 
 **WHEN** the npm package is built or packed
-**THEN** the bundled Codex skill files and OpenCode command Markdown files, including the new `bump` workflow and excluding the removed `docs-changelog` workflow, are included as the source content used by the plugin.
+**THEN** the bundled Codex skill files and OpenCode command Markdown files, including the `bump` workflow and excluding the removed `push`, `sync`, and `trunk` workflows, are included as the source content used by the plugin.
 
 #### Scenario: Verify the plugin registry and package contents
 
 **WHEN** a contributor runs `make check`
-**THEN** executable checks verify the eight command registrations, eight skill registrations, command-to-skill mappings, absolute `Skill.Info` locations, loaded source content, unchanged argument and attachment forwarding, and required files in the npm package inventory.
+**THEN** executable checks verify exactly five command registrations, five skill registrations, command-to-skill mappings, absence of removed names and aliases, absolute `Skill.Info` locations, loaded source content, unchanged argument and attachment forwarding, and required files in the npm package inventory.
 
 #### Scenario: Run the project check
 

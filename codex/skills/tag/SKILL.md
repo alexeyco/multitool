@@ -1,5 +1,5 @@
 ---
-name: repo-tag
+name: tag
 description: Update the configured default branch and create and push an approved release tag.
 ---
 

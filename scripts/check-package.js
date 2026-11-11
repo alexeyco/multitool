@@ -42,7 +42,29 @@ const required = [
   ".codex-plugin/plugin.json",
   "opencode/index.ts",
   ...[
+    "multitool.bump",
+    "multitool.branch",
+    "multitool.commit",
+    "multitool.pr",
+    "multitool.tag",
+  ].map((name) => `opencode/commands/${name}.md`),
+  ...[
     "bump",
+    "branch",
+    "commit",
+    "pr",
+    "tag",
+  ].map((id) => `codex/skills/${id}/SKILL.md`),
+];
+
+const removed = [
+  "opencode/commands/docs.changelog.md",
+  "codex/skills/docs-changelog/SKILL.md",
+  ...["branch", "commit", "pr", "tag"].map(
+    (name) => `opencode/commands/${name}.md`,
+  ),
+  "opencode/commands/bump.md",
+  ...[
     "repo.branch",
     "repo.commit",
     "repo.pr",
@@ -52,7 +74,6 @@ const required = [
     "repo.trunk",
   ].map((name) => `opencode/commands/${name}.md`),
   ...[
-    "bump",
     "repo-branch",
     "repo-commit",
     "repo-pr",
@@ -61,11 +82,6 @@ const required = [
     "repo-tag",
     "repo-trunk",
   ].map((id) => `codex/skills/${id}/SKILL.md`),
-];
-
-const removed = [
-  "opencode/commands/docs.changelog.md",
-  "codex/skills/docs-changelog/SKILL.md",
 ];
 
 if (codexPlugin.skills !== "./codex/skills/") {

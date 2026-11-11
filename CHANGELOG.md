@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0
+
+### Changed
+
+- Namespaced the retained workflows as `$multitool:<action>` in Codex and `/multitool.<action>` in OpenCode; removed the `push`, `sync`, and `trunk` workflows.
+- Updated PR guidance to direct users to push commits manually with `git push`.
+
 ## 0.3.0
 
 ### Added

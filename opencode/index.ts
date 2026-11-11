@@ -4,24 +4,18 @@ import { Plugin, Skill } from "@opencode/plugin";
 
 const SKILL_IDS = [
   "bump",
-  "repo-branch",
-  "repo-commit",
-  "repo-pr",
-  "repo-push",
-  "repo-sync",
-  "repo-tag",
-  "repo-trunk",
+  "branch",
+  "commit",
+  "pr",
+  "tag",
 ] as const;
 
 const COMMANDS = [
-  { name: "bump", skillID: "bump" },
-  { name: "repo.branch", skillID: "repo-branch" },
-  { name: "repo.commit", skillID: "repo-commit" },
-  { name: "repo.pr", skillID: "repo-pr" },
-  { name: "repo.push", skillID: "repo-push" },
-  { name: "repo.sync", skillID: "repo-sync" },
-  { name: "repo.tag", skillID: "repo-tag" },
-  { name: "repo.trunk", skillID: "repo-trunk" },
+  { name: "multitool.bump", skillID: "bump" },
+  { name: "multitool.branch", skillID: "branch" },
+  { name: "multitool.commit", skillID: "commit" },
+  { name: "multitool.pr", skillID: "pr" },
+  { name: "multitool.tag", skillID: "tag" },
 ] as const;
 
 const sourceRoot = resolve(import.meta.dirname, "..");
