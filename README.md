@@ -5,6 +5,10 @@
 Registers five OpenCode commands and distributes their matching Codex skills.
 The source instructions remain in the Markdown files in this repository.
 
+> **Note:** Development and maintenance of this repository have stopped in
+> favor of [alexeyco/skills](https://github.com/alexeyco/skills). Please use
+> that repository for new installs and future updates.
+
 ## Codex
 
 ### Install
