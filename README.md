@@ -1,63 +1,43 @@
 # multitool
 
-![multitool — fast workflows for Codex and OpenCode](docs/gallery/banner.svg)
+![multitool — workflow skills for coding agents](docs/gallery/banner.svg)
 
-Registers five OpenCode commands and distributes their matching Codex skills.
-The source instructions remain in the Markdown files in this repository.
+A collection of agent skills for common repository workflows. Each skill is a
+plain Markdown instruction file, portable across coding agents and installed
+with the [skills](https://github.com/vercel-labs/skills) CLI.
 
-## Codex
+## Install
 
-### Install
-
-Add the repository as a plugin marketplace, then install `multitool`:
+Requires Node.js 22.20 or later. Run this from your project:
 
 ```sh
-codex plugin marketplace add alexeyco/multitool
-codex plugin add multitool@multitool
+npx skills add alexeyco/multitool
 ```
 
-Codex installs the packaged skills from the marketplace. Start a new Codex session to use them.
+Choose the skills and coding agents to install to. Skills are installed to the
+current project by default; add `-g` to make them available across projects.
 
-### Commands
-
-- [`$multitool:branch`](codex/skills/branch/SKILL.md) — create an approved branch for the current task.
-- [`$multitool:commit`](codex/skills/commit/SKILL.md) — review changes, run defined checks, and create confirmed commits.
-- [`$multitool:pr`](codex/skills/pr/SKILL.md) — prepare and create a pull or merge request after confirmation.
-- [`$multitool:tag`](codex/skills/tag/SKILL.md) — create and push a tag after approval.
-- [`$multitool:bump`](codex/skills/bump/SKILL.md) — review a release baseline and prepare an approved version bump.
-
-## OpenCode
-
-### Install
-
-Add the npm package to the `plugin` array in OpenCode's `opencode.json`:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@alexeyco/multitool"]
-}
+```sh
+# List available skills without installing
+npx skills add alexeyco/multitool --list
 ```
 
-OpenCode installs the npm plugin and registers its commands and skills at startup.
+## Skills
 
-### Commands
+In flow order:
 
-Commands use the `/multitool.<action>` format:
+- [mt-task-grill](skills/mt-task-grill/SKILL.md) — warm up a draft plan: interview, fill gaps, check test commands, approve.
+- [mt-task-execute](skills/mt-task-execute/SKILL.md) — launch the ready wave: one herdr worktree and opencode agent per task.
+- [mt-task-complete](skills/mt-task-complete/SKILL.md) — drive tasks to readiness: verify tests, commit, advance dependent waves, tear down.
+- [mt-task-review](skills/mt-task-review/SKILL.md) — fresh read-only reviewer agent per task, fix loop until clean.
+- [mt-task-ship](skills/mt-task-ship/SKILL.md) — per-task confirmed merges with post-merge tests, then a confirmed push.
+- [mt-task-reflect](skills/mt-task-reflect/SKILL.md) — retrospective of the current orchestration session.
 
-- [`/multitool.branch`](opencode/commands/multitool.branch.md)
-- [`/multitool.commit`](opencode/commands/multitool.commit.md)
-- [`/multitool.pr`](opencode/commands/multitool.pr.md)
-- [`/multitool.tag`](opencode/commands/multitool.tag.md)
-- [`/multitool.bump`](opencode/commands/multitool.bump.md)
+The execute, complete, and review skills control herdr and require a session
+running inside it (`HERDR_ENV=1`).
 
-See [AGENTS.md](AGENTS.md) for the repository map and guidance for contributors and agents.
-
-## Automation
-
-CI runs on pull requests and pushes to `master`. npm publishing runs on `v*`
-version tags after checking that the tag matches `package.json` and its commit
-is on `master`.
+See [AGENTS.md](AGENTS.md) for the repository map and guidance for contributors
+and agents.
 
 ## License
 
